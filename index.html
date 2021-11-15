@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>ERSA Simulation</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0" />
+    <meta charset="utf-8" />
+
+    <link rel="icon" href="favicon.ico">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="css/materialize.css" type="text/css" rel="stylesheet" media="screen,projection">
+    <link href="css/styles.css" type="text/css" rel="stylesheet" media="screen,projection">
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/xlsx/dist/xlsx.full.min.js" async></script>
+    <script>google.charts.load('current', { packages: ['corechart', 'line'] });</script>
+</head>
+<body>
+    <!--preloader-->
+    <div class="preloader">
+        <div class="progress grey lighten-3">
+            <div class="indeterminate grey"></div>
+        </div>
+    </div>
+
+    <!--navigation bar-->
+    <nav class="primary-theme header-padding">
+        <!--logo-->
+        <img class="brand-logo nav-bar-logo hide-on-med-and-down left" src="media/logo.png" />
+        <img class="brand-logo nav-bar-logo hide-on-large-only left" src="media/arrows.png" />
+
+        <ul>
+            <li id="headertitle" style="white-space:nowrap;"><div class="brand-logo center" style="font-weight:300; display:inline-block">ERSA Simulation</div></li>
+        </ul>
+
+        <ul class="right">
+            <li>
+                <a id="help" class="waves-effect waves-light btn secondary-theme modal-trigger" data-target="help_modal">
+                    help<i class="material-icons left">help_outline</i>
+                </a>
+            </li>
+            <li>
+                <a id="settings" class="waves-effect waves-light btn secondary-theme modal-trigger" data-target="settings_modal" >
+                    settings<i class="material-icons left">settings</i>
+                </a>
+            </li>
+            <li>
+                <a id="mockbooking" class="waves-effect waves-light btn secondary-theme" >
+                    mock booking<i class="material-icons left">book</i>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!--main page content-->
+    <main class="autoheight">
+        <div class="row">
+            <div id="leftcol" class="col s12 m12 l3 left">
+
+                <!--Queue Panel-->
+                <div id="queuepanel" class="card-panel secondary-theme panel-styles">
+                    <!-- hidden file picker -->
+                    <input id="filepicker" class="file-picker" type="file" accept=".xlsx, .xls, .csv, .ods" multiple>
+
+                    <div class="panel-header row">
+                        <h4 class="truncate panelheader col s6">Trip Queue</h4>
+                        <div class="col s6">
+                            <a id="popqueue" class="btn-floating tooltipped waves-effect waves-light primary-theme right" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
+                            <a id="filebutton" class="btn-floating tooltipped waves-effect waves-light primary-theme right" data-tooltip="Set trips from CSV"><i class="material-icons">upload_file</i></a>
+                        </div>
+                    </div>
+
+                    <div class="queue-tabs">
+                        <ul id="tabs" class="tabs yellow-text scrollbar-x-primary">
+                            <!-- Content filled in tripQueue.js-->
+                        </ul>
+                    </div>
+
+                    <div id="lists">
+                        <!-- Content filled in tripQueue.js-->
+                    </div>
+                </div>
+
+                <div id="queueplaceholder" class="queuepanelph" style="display:none"><p>Queue: un-docked</p></div>
+            </div>
+
+            <div id="centercol" class="col s12 m12 l6">
+                <!-- map panel-->
+                <div id="map" class="z-depth-1 map-default"></div>
+
+                <div id="clockbar" class="clock-bar">
+                    <i class="material-icons white-text left" style="line-height: 35px; font-size: 35px; margin-top: 4px;">schedule</i>
+                    <a id="clock" class="left modal-trigger" style="color: rgb(255, 255, 255, 1); font-size: 30px; margin-top:-2px; margin-bottom: 0px; margin-right: 15px; cursor:pointer;" data-target="modaltime"><!-- Content filled in tripQueue.js--></a>
+                    <a id="fastspeed" class="btn-floating btn-medium waves-effect waves-light grey z-depth-0 right tooltipped" data-position="bottom" data-tooltip="Fast speed (Up to 300x)" style="margin-right: 10px;" onclick="M.toast({html: 'Simulation speed: Fast'})"><i class="material-icons">fast_forward</i></a>
+                    <a id="normalspeed" class="btn-floating btn-medium waves-effect waves-light light-green z-depth-0 right interactable tooltipped" data-position="bottom" data-tooltip="Normal speed (60x)" style="margin-right: 5px;" onclick="M.toast({html: 'Simulation speed: Normal'})"><i class="material-icons">play_arrow</i></a>
+                </div>
+            </div>
+
+            <div id="rightcol" class="col s12 m12 l3 right">
+
+                <!--Log Panel-->
+                <div id="logpanel" class="card-panel secondary-theme panel-styles">
+                    <div class="panel-header row">
+                        <h4 class="truncate panelheader col s6">Event Log</h4>
+                        <div class="col s6">
+                            <a id="poplog" class="btn-floating btn-medium tooltipped waves-effect waves-light primary-theme right" data-position="bottom" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
+                            <a id="clearlog" class="btn-floating btn-medium  tooltipped waves-effect waves-light primary-theme right modal-trigger" data-position="bottom" data-tooltip="Clear log"><i class="material-icons">clear_all</i></a>
+                        </div>
+                    </div>
+                    <div id="logbox" class="white scrollbar-primary logbox">
+                        <!-- Content filled in log.js-->
+                    </div>
+                </div>
+                <div id="logplaceholder" class="logpanelph" style="display:none"><p>Log: un-docked</p></div>
+
+                <!--Stats Panel-->
+                <div id="statspanel" class="card-panel secondary-theme panel-styles">
+                    <div class="panel-header row">
+                        <h4 class="truncate panelheader col s6">Statistics</h4>
+                        <div class="col s6">
+                            <a id="popstats" class="btn-floating btn-medium tooltipped waves-effect waves-light primary-theme right" data-position="bottom" data-tooltip="Pop-out"><i class="material-icons">launch</i></a>
+                            <a id="detailstats" class="btn-floating btn-medium tooltipped waves-effect waves-light primary-theme right no-file-selected" data-position="bottom" data-tooltip="Detail stats"><i class="material-icons">calculate</i></a>
+                        </div>
+                    </div>
+                    <div class="white statscontent scrollbar-primary">
+                        <div class="card-panel" style="margin:5px; height:58%">
+                            <div id="chart_div" style="margin-left: -15px; margin-right: -10px; margin-top:-10px; margin-bottom:10px; height: 100%;"></div>
+                        </div>
+                        <!--general stats-->
+                        <table id="generalstats" class="white highlight center" style="margin-top:15px;">
+                            <tbody>
+                                <!-- Content filled in statisticsList.js-->
+                            </tbody>
+                        </table>
+
+                        <!--vehicle stats-->
+                        <table id="vehiclestats" class="striped" style="margin-top: 20px;">
+                            <thead>
+                              <tr>
+                                  <th>Vehicle</th>
+                                  <th>Served</th>
+                                  <th>Idle Time</th>
+                                  <th>Mileage</th>
+                                  <th>revenue</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Content filled in statisticsList.js-->
+                            </tbody>
+                          </table>
+                    </div>
+                </div>
+                <div id="statsplaceholder" class="statspanelph" style="display:none"><p>Statistics: un-docked</p></div>
+<!--
+// ───────▄▀▀▀▀▀▀▀▀▀▀▄▄
+// ────▄▀▀░░░░░░░░░░░░░▀▄      {❤ 100/100} {¤ 532} {⚔ 12}
+// ──▄▀░░░░░░░░░░░░░░░░░░▀▄
+// ──█░░░░░░░░░░░░░░░░░░░░░▀▄
+// ─▐▌░░░░░░░░▄▄▄▄▄▄▄░░░░░░░▐▌
+// ─█░░░░░░░░░░░▄▄▄▄░░▀▀▀▀▀░░█
+// ▐▌░░░░░░░▀▀▀▀░░░░░▀▀▀▀▀░░░▐▌
+// █░░░░░░░░░▄▄▀▀▀▀▀░░░░▀▀▀▀▄░█       ah, an inspector! 
+// █░░░░░░░░░░░░░░░░▀░░░▐░░░░░▐▌
+// ▐▌░░░░░░░░░▐▀▀██▄░░░░░░▄▄▄░▐▌
+// ─█░░░░░░░░░░░▀▀▀░░░░░░▀▀██░░█      care to see my wares?
+// ─▐▌░░░░▄░░░░░░░░░░░░░▌░░░░░░█
+// ──▐▌░░▐░░░░░░░░░░░░░░▀▄░░░░░█      [yes] | [no]
+// ───█░░░▌░░░░░░░░▐▀░░░░▄▀░░░▐▌      
+// ───▐▌░░▀▄░░░░░░░░▀░▀░▀▀░░░▄▀
+// ───▐▌░░▐▀▄░░░░░░░░░░░░░░░░█
+// ───▐▌░░░▌░▀▄░░░░▀▀▀▀▀▀░░░█
+// ───█░░░▀░░░░▀▄░░░░░░░░░░▄▀
+// ──▐▌░░░░░░░░░░▀▄░░░░░░▄▀
+// ─▄▀░░░▄▀░░░░░░░░▀▀▀▀█▀
+// ▀░░░▄▀░░░░░░░░░░▀░░░▀▀▀▀▄▄▄▄▄
+-->
+            </div>
+        </div>
+
+        <!--help modal-->
+        <div id="help_modal" class="modal modal-fixed-footer white">
+            <div class="modal-content scrollbar-primary">
+                <div class="row">
+                    <h3 style="font-weight: 300;">Help</h3>
+                    <p style="font-weight: 400; font-size: 16px;">Learn about the different components and features in this simulation</p>
+                    <div class="divider"></div>
+                </div>
+                <div class="row" style="margin-top: 50px;">
+                    <div class="col s7">
+                    <blockquote>
+                        <h4 style="font-weight: 300;">The Trip Queue</h4>
+                    </blockquote>
+                    <p class="flow-text" style="font-weight: 400; font-size: 18px;">
+                    The trip queue is responsible for monitoring the current status of all vehicles, and their upcoming trips. All <b>current</b> and 
+                    <b>future</b> trips are shown in a per-vehicle tab view. Unassigned trips will also be shown in their own tab. Vehicles which are still
+                    in their depot will be denoted with a light-grey 'waiting' icon instead of the normal colored bus icon 
+                    (<i class="material-icons red-text">directions_bus</i> vs. <i class="material-icons grey-text">departure_board</i>).
+                    <br><br>
+                    Trips are shown as cards with 5 components:
+                    <br><b>Icon</b> - Denotes the trip type (pick-up, drop-off, station, or depot)
+                    <br><b>Name</b> - The passenger or station assosicated with the trip
+                    <br><b>Start/End Address</b> - Start and End addresses of the trip (Start <i class="material-icons">arrow_forward</i> End)
+                    <br><b>Progress</b> - Shows the progress of the vehicle to the trip destination
+                    <br><br>
+                    Additionally, trips may also be highlighted in <b>green</b> to denote that the trip is currently in progress, or <b>yellow</b> to denote that 
+                    the vehicle is currently 'idling' (waiting before continuing) at the end of that trip.
+                    <br><br>
+                    Trip Queue Controls:
+                    <br><b>File upload <i class="material-icons">upload_file</i></b> - Allows the user to upload one or more 'trip lists' which can be used to build simulations. 
+                    Custom fare values can be used to customize the simulation for the type of operation.
+                    <br><b>Pop-Window <i class="material-icons">launch</i></b> - Detach the trip queue into a new window. This allows the user to expand the map and make use 
+                    of multiple displays.
+                    </p>
+                    </div>
+                    <img class="responsive-img col s5" src="media/tripqueue.gif" alt="Basic trip queue"/>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#!" class="modal-close waves-effect waves-green btn-flat"><i class="material-icons left">close</i>close</a>
+            </div>
+        </div>
+
+        <!--settings modal-->
+        <div id="settings_modal" class="modal modal-fixed-footer white">
+            <div class="modal-content scrollbar-primary">
+                <div class="row">
+                    <h3 style="font-weight: 300;">Settings</h3>
+                    <p style="font-weight: 400; font-size: 16px;">Set simulation settings</p>
+                    <div class="divider"></div>
+                </div>
+                <div class="row">
+                    <div class="row">
+                        <h5 style="font-weight: 300;">General Settings</h5>
+                        <div class="divider col s6"></div>
+                    </div>
+                    <div class="row">
+                        <div class="input-field col s4">
+                            <input placeholder="Page Title" id="settings_title" value="On Demand Booking" type="text">
+                            <label for="settings_title">Set Page Title</label>
+                        </div>
+                    </div>
+                    <div class="row color-picker">
+                        <span class="col s3">
+                            Primary Theme Color: &nbsp
+                        </span>
+                        <input type="color" id="settings_primary_color" value="#fbc02d">
+                    </div>
+                    <div class="row">
+                        <span class="col s3">
+                            Secondary Theme Color: &nbsp
+                        </span>
+                        <input type="color" id="settings_secondary_color" value="#757575">
+                    </div>
+                    <div class="row" style="margin-top: 50px;">
+                        <h5 style="font-weight: 300;">Trip Queue Settings</h5>
+                        <div class="divider col s6"></div>
+                    </div>
+                    <div class="row">
+                        <span class="col s3">
+                            Auto-Focus Trip Tabs: &nbsp
+                        </span>
+                        <div class="switch">
+                            <label>
+                                Off
+                                <input id="settings_autofocus" type="checkbox">
+                                <span class="lever"></span>
+                                On
+                            </label>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top: 50px;">
+                        <h5 style="font-weight: 300;">Map Settings</h5>
+                        <div class="divider col s6"></div>
+                    </div>
+                    <div class="row">
+                        <span class="col s3">
+                            Draw Vehicle Paths: &nbsp
+                        </span>
+                        <div class="switch">
+                            <label>
+                                Off
+                                <input id="settings_drawpath" type="checkbox" checked="true">
+                                <span class="lever"></span>
+                                On
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a id="settings_close" href="#!" class="modal-close waves-effect waves-green btn-flat"><i class="material-icons left">close</i>close</a>
+                <a id="settings_save" href="#!" class="modal-close waves-effect waves-green btn-flat"><i class="material-icons left">save</i>save</a>
+            </div>
+        </div>
+
+        <!--QR scan modal-->
+        <div id="modalqr" class="modal white" style="max-height: 750px; max-width: 550px;">
+            <div class="modal-content">
+                <div class="row">
+                    <h3 style="font-weight: 300;">Plan a trip</h3>
+                    <p style="font-weight: 400; font-size: 16px;">Scan the QR code to book a custom trip using your mobile device and track it</p>
+                    <div class="divider"></div>
+                </div>
+                <div class="row center">
+                    <img class="responsive-img" style="max-height: 500px;" src="media/scanner.svg"/>
+                </div>
+            </div>
+        </div>
+
+        <!--stats modal-->
+        <div id="modalstats" class="modal modal-fixed-footer dstats-modal white">
+            <div class="modal-content scrollbar-primary">
+                <div class="row col s12">
+                    <h3 style="font-weight: 300;">Detailed Statistics</h3>
+                    <div class="divider"></div>
+                </div>
+                <!--passenger line charts-->
+                <div id="mstatscharts" class="row col s12">
+                    <!--Content filled by detailedStats.js-->
+                </div>
+                <!--individual file stats-->
+                <div class="row col s12">
+                    <ul id="mstatstabs" class="tabs grey lighten-4">
+                        <!--Content filled by detailedStats.js-->
+                    </ul>
+                    <p class="grey-text dstats-disclaimer col s12">
+                        *Statistics do not include passengers who may have boarded from fixed-stops
+                    </p>
+                    <div id="mstatstables" class="col s12">
+                        <!--Content filled by detailedStats.js-->
+                    </div>
+                </div>
+                <!--percentage stats-->
+                <div class="row" style="margin-top: 50px;">
+                    <div class="row">
+                        <h5 class="center" style="font-weight: 300;">Performance Ranking</h5>
+                        <div class="divider center col s6 offset-s3"></div>
+                    </div>
+                    <div id="mstatsperfranking" class="row center">
+                        <!--Content filled by detailedStats.js-->
+                    </div>
+                    <div id="mstatsperfnotes" class="row">
+                        <!--Content filled by detailedStats.js-->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#!" class="modal-close waves-effect waves-green btn-flat disabled"><i class="material-icons left">print</i>print</a>
+                <a href="#!" class="modal-close waves-effect waves-green btn-flat"><i class="material-icons left">close</i>close</a>
+            </div>
+        </div>
+
+        <!--fare calc modal-->
+        <div id="modalfare" class="modal white">
+            <div class="modal-content">
+                <div class="row">
+                    <h3 style="font-weight: 300;">Custom Fare</h3>
+                    <p style="font-weight: 400; font-size: 16px;">Set custom fare values for Micro-Transit revenue calculations</p>
+                    <div class="divider"></div>
+                </div>
+                <div class="row">
+                    <form class="col s12">
+                        <div class="row">
+                            <div class="input-field col s12">
+                                <i class="material-icons prefix">attach_money</i>
+                                <input id="basefee" type="number" class="validate" min="0" step="0.05">
+                                <label for="basefee">Base Fee (EX. 4.5)</label>
+                                <span class="helper-text" data-error="Warning: negative numbers will default"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="input-field col s12">
+                                <i class="material-icons prefix">add_road</i>
+                                <input id="feepermile" type="number" class="validate" min="0" step="0.05">
+                                <label for="feepermile">Fee per Mile (EX. 0.75)</label>
+                                <span class="helper-text" data-error="Warning: negative numbers will default"></span>
+                            </div>
+                        </div>
+                        <div class="row center-align">
+                            <a id="farebutton" class="waves-effect waves-light btn-large primary-theme" style="font-size:18px;"><i class="material-icons left">send</i>submit</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!--time set modal-->
+        <div id="modaltime" class="modal modal-fixed-footer white">
+            <div class="modal-content" style="height:fit-content">
+                <div class="row">
+                    <h3 style="font-weight: 300;">Set Time</h3>
+                    <p style="font-weight: 400; font-size: 16px;">Jump to selected simulation time</p>
+                    <div class="divider"></div>
+                </div>
+                <div class="row" style="padding-top: 20px;">
+                    <form class="col s12">
+                        <div class="row center-align no-padding">
+                            <div class="input-field col s9">
+                                <input id="settimeinput" placeholder="Format: hh:mm" value="12:00" type="text">
+                                <label for="first_name">Input time of day (hh:mm)</label>
+                            </div>
+                            <div class="input-field col s3">
+                                <select id="settimedd">
+                                <option value="AM" selected>AM</option>
+                                <option value="PM">PM</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+              <a href="#!" class="modal-close waves-effect waves-green btn-flat"><i class="material-icons left">close</i>close</a>
+              <a id="settimebutton" href="#!" class="modal-close waves-effect waves-green btn-flat"><i class="material-icons left">tune</i>set time</a>
+            </div>
+        </div>
+
+        <!--processing modal-->
+        <div id="modalprocessing" class="modal white processing-modal">
+            <div class="modal-content">
+                <div class="row center">
+                    <h3 style="font-weight: 300;">Processing...</h3>
+                </div>
+                <!--animation-->
+                <div class="row col s12 m12 l4 offset-l4 center" style="margin-top: 75px;">
+                    <div class="preloader-wrapper big active">
+                        <div class="spinner-layer spinner-yellow-only">
+                            <div class="circle-clipper left">
+                                <div class="circle"></div>
+                            </div>
+                            <div class="gap-patch">
+                                <div class="circle"></div>
+                            </div>
+                            <div class="circle-clipper right">
+                                <div class="circle"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="primary-theme">
+        <a class="white-text" href="#" style="margin:0px; margin-left: 20px; "><u>legal</u></a>
+        <a class="white-text" href="http://itcurves.net/" style="margin:0px; margin-left: 10px;"><u>IT Curves</u></a>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript" src="js/materialize.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC3NIEDkRjSnmYseoNvVGkX-lPbssaPiHU&libraries=&v=weekly" async></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
